@@ -18,6 +18,15 @@ print(bscu.SaveFile("0001000052534250")) # Shows some info about the savefile
 bscu.SaveFile("0001000052534250").set_golden_hammers(5) # Will set golden hammers to 5 and update the checksum
 bscu.SaveFile("0001000052534250").update_autosave_checksum() # Updates the autosave checksum manually
 ```
+
+## More research
+* The *1 files are just backups and are the exact same as the *0 files
+* **advsave0.bin** contains Subspace Emissary data
+* **collect.vff** contains Custom Stages, Photos and Replays (can be extracted with e.g. [Wii.py3](https://github.com/Brawl345/Wii.py3))
+* **net0.bin** contains Wi-Fi data
+* **autosv0.bin** contains the rest, like Stickers, Trophies, Classic data, etc.
+* **banner.bin** is obviously the savegame banner
+* **wc24pubk.mod** is the public key for decrypting WiiConnect24 data
   
 ## Credits
 * Daeken for original Struct.py that I still use over five different projects \*sigh\*
