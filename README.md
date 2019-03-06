@@ -2,9 +2,9 @@ Brawl Savefile Checksum Updater
 ========
 This little Python program **updates the checksum of the Super Smash Bros. Brawl Savefile**.
 
-It's as simple as taking a file, cutting off the CRC32 sum found at the end (or near the end) and calculating the new CRC32 sum (and replacing the old).
+It's as simple as taking a file, cutting off the CRC32 sum found at the end and calculating the new CRC32 sum (and replacing the old).
 
-It only suppors the two `autosv.bin` files atm, rest should be easy. It can also edit the number of available golden hammers on the milestone wall.
+It only suppors the `autosv.bin` and `net.bin` files atm (`advsv.bin` has no checksum?). It can also edit the number of available golden hammers on the milestone wall.
 
 **Only tested with a PAL savegame!** Offsets for other regions may be different, but the checks are the same.
 
@@ -21,7 +21,7 @@ bscu.SaveFile("0001000052534250").update_autosave_checksum() # Updates the autos
 
 ## More research
 * The *1 files are just backups and are the exact same as the *0 files
-* **advsave0.bin** contains Subspace Emissary data
+* **advsv0.bin** contains Subspace Emissary data
 * **collect.vff** contains Custom Stages, Photos and Replays (can be extracted with e.g. [Wii.py3](https://github.com/Brawl345/Wii.py3))
 * **net0.bin** contains Wi-Fi data
 * **autosv0.bin** contains the rest, like Stickers, Trophies, Classic data, etc.
