@@ -35,30 +35,24 @@ class SaveFile:
 
     def __init__(self, directory):
         self.directory = directory
-        try:
-            autosave0_file = open(os.path.join(self.directory, "autosv0.bin"), "rb").read()
-            autosave1_file = open(os.path.join(self.directory, "autosv1.bin"), "rb").read()
-        except FileNotFoundError:
-            raise FileNotFoundError('File not found')
+        autosave_file = []
+        for i in range(2):
+            try:
+                autosave_file.append(open(os.path.join(self.directory, "autosv{0}.bin".format(i)), "rb").read())
+            except FileNotFoundError:
+                raise FileNotFoundError("autosv{0}.bin not found".format(i))
 
-        if len(autosave0_file) != 50816:
-            raise Exception("This is not a valid autosv0.bin!")
-        if len(autosave1_file) != 50816:
-            raise Exception("This is not a valid autosv1.bin!")
+        self.autosave = []
+        for num, autosave in enumerate(autosave_file):
+            if len(autosave) != 50816:
+                raise Exception("This is not a valid autosv{0}.bin!".format(num))
+            self.autosave.append(self.AutoSave().unpack(autosave))
+            self.autosave[num].checksum = autosave[-4:]
+            if self.autosave[num].calculate_checksum() != self.autosave[num].checksum:
+                print("WARNING: autosv{0}.bin CRC32 checksum mismatch!".format(num))
 
-        if autosave0_file != autosave1_file:
+        if autosave_file[0] != autosave_file[1]:
             print("WARNING: autosv0.bin is NOT THE SAME as autosv1.bin!")
-
-        self.autosave0 = self.AutoSave().unpack(autosave0_file)
-        self.autosave0.checksum = autosave0_file[-4:]
-        self.autosave1 = self.AutoSave().unpack(autosave1_file)
-        self.autosave1.checksum = autosave1_file[-4:]
-
-        if self.autosave0.calculate_checksum() != self.autosave0.checksum:
-            print("WARNING: autosv0.bin CRC32 checksum mismatch!")
-
-        if self.autosave1.calculate_checksum() != self.autosave1.checksum:
-            print("WARNING: autosv1.bin CRC32 checksum mismatch!")
 
     def set_golden_hammers(self, num):
         """Sets golden hammers from 0 to 255.
@@ -67,28 +61,25 @@ class SaveFile:
         if not 255 >= num >= 0:
             raise ValueError("Minimum is 0, maximum is 255.")
 
-        self.autosave0.goldenHammers = num
-        self.autosave1.goldenHammers = num
+        for autosave in self.autosave:
+            autosave.goldenHammers = num
         self.update_autosave_checksum()
 
     def update_autosave_checksum(self):
-        with open(os.path.join(self.directory, "autosv0.bin"), "wb") as autosave:
-            autosave.write(self.autosave0.pack_with_checksum())
-
-        with open(os.path.join(self.directory, "autosv1.bin"), "wb") as autosave:
-            autosave.write(self.autosave1.pack_with_checksum())
+        for num, autosave in enumerate(self.autosave):
+            with open(os.path.join(self.directory, "autosv{0}.bin".format(num)), "wb") as autosave_file:
+                autosave_file.write(autosave.pack_with_checksum())
 
     def __str__(self):
         output = "Super Smash Bros. Brawl Savefile\n"
-        if self.autosave0.calculate_checksum() != self.autosave0.checksum:
-            output += "  WARNING: AutoSave0 checksum mismatch!\n"
-        if self.autosave1.calculate_checksum() != self.autosave1.checksum:
-            output += "  WARNING: AutoSave1 checksum mismatch!\n"
+        for num, autosave in enumerate(self.autosave):
+            if autosave.calculate_checksum() != autosave.checksum:
+                output += "  WARNING: AutoSave{0} checksum mismatch!\n".format(num)
 
-        if self.autosave0.pack() != self.autosave1.pack():
+        if self.autosave[0].pack() != self.autosave[1].pack():
             output += "  WARNING: autosv0.bin is NOT THE SAME as autosv1.bin!\n"
 
         output += "\n"
-        output += str(self.autosave0)
+        output += str(self.autosave[0])
 
         return output
