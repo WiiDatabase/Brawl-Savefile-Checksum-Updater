@@ -2,7 +2,7 @@
 import binascii
 import os
 
-from Struct import Struct
+from ctypes import *
 
 
 class SaveFile:
@@ -12,16 +12,19 @@ class SaveFile:
         directory (str): Path to decrypted SSBB savefile folder
     """
 
-    class AutoSave(Struct):
-        __endian__ = Struct.BE
-
-        def __format__(self):
-            self.unknown1 = Struct.string(0x15B0)
-            self.goldenHammers = Struct.uint8
-            self.unknown2 = Struct.string(0xB0CB)
+    class AutoSave(BigEndianStructure):
+        _pack_ = 1
+        _fields_ = [
+            ("unknown1", ARRAY(c_byte, 0x15B0)),
+            ("goldenHammers", c_uint8),
+            ("unknown2", ARRAY(c_byte, 0xB0CB))
+        ]
 
         def calculate_checksum(self):
-            return binascii.crc32(self.pack()).to_bytes(4, "big")
+            return binascii.crc32(bytes(self)).to_bytes(4, "big")
+
+        def pack(self):
+            return bytes(self)
 
         def pack_with_checksum(self):
             return self.pack() + self.calculate_checksum()
@@ -33,14 +36,16 @@ class SaveFile:
 
             return output
 
-    class Net(Struct):
-        __endian__ = Struct.BE
-
-        def __format__(self):
-            self.unknown = Struct.string(0x281C)
+    class Net(BigEndianStructure):
+        _fields_ = [
+            ("unknown", ARRAY(c_byte, 0x281C))
+        ]
 
         def calculate_checksum(self):
-            return binascii.crc32(self.pack()).to_bytes(4, "big")
+            return binascii.crc32(bytes(self)).to_bytes(4, "big")
+
+        def pack(self):
+            return bytes(self)
 
         def pack_with_checksum(self):
             return self.pack() + self.calculate_checksum()
@@ -70,7 +75,7 @@ class SaveFile:
         for num, autosave in enumerate(autosave_file):
             if len(autosave) != 50816:
                 raise Exception("This is not a valid autosv{0}.bin!".format(num))
-            self.autosave.append(self.AutoSave().unpack(autosave))
+            self.autosave.append(self.AutoSave.from_buffer_copy(autosave))
             self.autosave[num].checksum = autosave[-4:]
             if self.autosave[num].calculate_checksum() != self.autosave[num].checksum:
                 print("WARNING: autosv{0}.bin CRC32 checksum mismatch!".format(num))
@@ -82,7 +87,7 @@ class SaveFile:
         for num, net in enumerate(net_file):
             if len(net) != 10272:
                 raise Exception("This is not a valid net{0}.bin!".format(num))
-            self.net.append(self.Net().unpack(net))
+            self.net.append(self.Net.from_buffer_copy(net))
             self.net[num].checksum = net[-4:]
             if self.net[num].calculate_checksum() != self.net[num].checksum:
                 print(self.net[num].calculate_checksum())
@@ -104,11 +109,13 @@ class SaveFile:
         self.update_autosave_checksum()
 
     def update_autosave_checksum(self):
+        """Updates checksum of the autosave file."""
         for num, autosave in enumerate(self.autosave):
             with open(os.path.join(self.directory, "autosv{0}.bin".format(num)), "wb") as autosave_file:
                 autosave_file.write(autosave.pack_with_checksum())
 
     def update_net_checksum(self):
+        """Updates checksum of the net file."""
         for num, net in enumerate(self.net):
             with open(os.path.join(self.directory, "net{0}.bin".format(num)), "wb") as net_file:
                 net_file.write(net.pack_with_checksum())

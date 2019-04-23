@@ -28,8 +28,5 @@ bscu.SaveFile("0001000052534250").update_autosave_checksum() # Updates the autos
 * **banner.bin** is obviously the savegame banner
 * **wc24pubk.mod** is the public key for decrypting WiiConnect24 data
   
-## Credits
-* Daeken for original Struct.py that I still use over five different projects \*sigh\*
-
 ## Screenshot
 ![Screenshot](screenshot.png?raw=true)
