@@ -90,8 +90,6 @@ class SaveFile:
             self.net.append(self.Net.from_buffer_copy(net))
             self.net[num].checksum = net[-4:]
             if self.net[num].calculate_checksum() != self.net[num].checksum:
-                print(self.net[num].calculate_checksum())
-                print(self.net[num].checksum)
                 print("WARNING: net{0}.bin CRC32 checksum mismatch!".format(num))
 
         if net_file[0] != net_file[1]:
